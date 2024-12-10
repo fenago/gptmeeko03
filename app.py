@@ -62,4 +62,9 @@ query_text = st.text_input('Enter your question:', placeholder='Ask a specific q
 
 # Generate response when input is provided
 if st.button("Submit") and query_text:
-    with st.spinner('Processing your request
+    with st.spinner('Processing your request...'):
+        try:
+            response = generate_response(query_text)
+            st.success(response)
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
