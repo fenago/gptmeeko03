@@ -36,9 +36,9 @@ def generate_response(query_text):
     embeddings = OpenAIEmbeddings(openai_api_key=YOUR_OPENAI_API_KEY)
 
     # Initialize Chroma vector store with a persistence directory
-    db = Chroma.from_texts(
-        texts,
-        embeddings,
+    db = Chroma.from_documents(
+        documents=texts,
+        embedding=embeddings,
         persist_directory=".chroma_data"  # Directory for persistence
     )
 
