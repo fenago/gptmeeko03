@@ -32,12 +32,15 @@ def generate_response(query_text):
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.split_text(document_text)
 
+    # Prepare documents for Chroma
+    documents = [{"page_content": text} for text in texts]
+
     # Select embeddings
     embeddings = OpenAIEmbeddings(openai_api_key=YOUR_OPENAI_API_KEY)
 
     # Initialize Chroma vector store with a persistence directory
     db = Chroma.from_documents(
-        documents=texts,
+        documents=documents,
         embedding=embeddings,
         persist_directory=".chroma_data"  # Directory for persistence
     )
