@@ -33,14 +33,14 @@ def generate_response(query_text):
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.split_text(document_text)
 
-    # Combine all chunks back into a single context for simplicity
-    combined_text = "\n".join(texts)
+    # Prepare documents for QA chain
+    input_documents = [{"page_content": text} for text in texts]
 
     # Create QA chain
     print("Creating QA chain...")
     qa_chain = load_qa_chain(llm=OpenAI(openai_api_key=YOUR_OPENAI_API_KEY, temperature=0), chain_type="stuff")
     print("Running QA chain...")
-    return qa_chain.run({"input_documents": [{"content": combined_text}], "question": query_text})
+    return qa_chain.run({"input_documents": input_documents, "question": query_text})
 
 # Streamlit page title and description
 st.set_page_config(page_title="GPT Chatbot with PDF Data")
