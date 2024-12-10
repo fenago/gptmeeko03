@@ -33,8 +33,16 @@ def load_static_data():
     return extract_text_from_pdf(pdf_path)
 
 def generate_response(query_text):
-    # Clean up existing Chroma data to avoid conflicts
-    clean_chroma_data()
+    chroma_directory = ".chroma_data"
+    # Check if Chroma data already exists
+    if not os.path.exists(chroma_directory):
+        os.makedirs(chroma_directory)
+
+    # Initialize Chroma client
+    client = Client(Settings(
+        persist_directory=chroma_directory,
+        anonymized_telemetry=False
+    ))
 
     # Load and preprocess data
     document_text = load_static_data()
@@ -43,15 +51,11 @@ def generate_response(query_text):
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.split_text(document_text)
 
-    # Initialize Chroma client with explicit tenant settings
-    client = Client(Settings(
-        persist_directory=".chroma_data",
-        anonymized_telemetry=False
-    ))
-
-    # Add documents to Chroma database in bulk
-    documents = [{"id": str(i), "content": text, "metadata": {}} for i, text in enumerate(texts)]
-    client.add(documents=documents)
+    # Check if documents are already in Chroma
+    if len(client.list_collections()) == 0:
+        # Add documents to Chroma database in bulk
+        documents = [{"id": str(i), "content": text, "metadata": {}} for i, text in enumerate(texts)]
+        client.add(documents=documents)
 
     # Retrieve similar documents
     retriever = client.query(query_text=query_text, n_results=5)
