@@ -1,8 +1,8 @@
 import streamlit as st
 from langchain.llms import OpenAI
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import Chroma
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 import pysqlite3
 import sys
@@ -51,7 +51,7 @@ def generate_response(query_text):
     )
 
     # Create retriever interface
-    retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 5})  # Return top 5 most relevant chunks
+    retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": min(5, len(texts))})  # Adjust number of results
 
     # Create QA chain
     qa = RetrievalQA.from_chain_type(
