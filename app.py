@@ -14,6 +14,7 @@ sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # Access the OpenAI API key from Streamlit secrets
 api_key = st.secrets["YOUR_OPENAI_API_KEY"]
+YOUR_OPENAI_API_KEY = st.secrets["YOUR_OPENAI_API_KEY"]
 
 # Initialize the OpenAI client with the API key from secrets
 client = OpenAI(api_key=api_key)
@@ -32,7 +33,7 @@ def load_static_data():
     return extract_text_from_pdf(pdf_path)
 
 def generate_response(query_text):
-    if not OPENAI_API_KEY:
+    if not YOUR_OPENAI_API_KEY:
         raise ValueError("OpenAI API Key is not set. Please set it in the environment variables.")
 
     documents = [load_static_data()]
@@ -42,7 +43,7 @@ def generate_response(query_text):
     texts = text_splitter.create_documents(documents)
     
     # Select embeddings
-    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+    embeddings = OpenAIEmbeddings(openai_api_key=YOUR_OPENAI_API_KEY)
     
     # Initialize Chroma vector store with a persistence directory
     db = Chroma.from_documents(
@@ -56,7 +57,7 @@ def generate_response(query_text):
     
     # Create QA chain
     qa = RetrievalQA.from_chain_type(
-        llm=OpenAI(openai_api_key=OPENAI_API_KEY, temperature=0),
+        llm=OpenAI(openai_api_key=YOUR_OPENAI_API_KEY, temperature=0),
         chain_type="stuff",
         retriever=retriever
     )
