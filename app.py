@@ -6,13 +6,17 @@ from langchain.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 import pysqlite3
 import sys
+import os
 from PyPDF2 import PdfReader
 
 # Replace sqlite3 module with pysqlite3 for Chroma compatibility
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-# Hardcoded OpenAI API Key
-OPENAI_API_KEY = "your-openai-api-key-here"  # Replace with your actual API key
+# Access the OpenAI API key from Streamlit secrets
+api_key = st.secrets["YOUR_OPENAI_API_KEY"]
+
+# Initialize the OpenAI client with the API key from secrets
+client = OpenAI(api_key=api_key)
 
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_path):
@@ -28,6 +32,9 @@ def load_static_data():
     return extract_text_from_pdf(pdf_path)
 
 def generate_response(query_text):
+    if not OPENAI_API_KEY:
+        raise ValueError("OpenAI API Key is not set. Please set it in the environment variables.")
+
     documents = [load_static_data()]
     
     # Split documents into manageable chunks
@@ -62,7 +69,7 @@ st.title('📄 GPT Chatbot: PDF Data')
 # User input for query
 query_text = st.text_input('Enter your question:', placeholder='Ask a specific question about the document.')
 
-# Generate response when query is provided
+# Generate response when input is provided
 if st.button("Submit") and query_text:
     with st.spinner('Processing your request...'):
         try:
