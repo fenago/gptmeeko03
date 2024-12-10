@@ -1,20 +1,15 @@
 import streamlit as st
-from langchain.llms import OpenAI
+from langchain_openai import OpenAI, OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
-import pysqlite3
-import sys
-import os
 from PyPDF2 import PdfReader
+import os
 
-# Replace sqlite3 module with pysqlite3 for Chroma compatibility
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-
-# Access the OpenAI API key from Streamlit secrets
-api_key = st.secrets["YOUR_OPENAI_API_KEY"]
-YOUR_OPENAI_API_KEY = st.secrets["YOUR_OPENAI_API_KEY"]
+# Access the OpenAI API key from environment variables or Streamlit secrets
+YOUR_OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", st.secrets.get("YOUR_OPENAI_API_KEY", ""))
+if not YOUR_OPENAI_API_KEY:
+    raise ValueError("OpenAI API Key is not set. Please add it to the environment variables or Streamlit secrets.")
 
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_path):
@@ -30,9 +25,6 @@ def load_static_data():
     return extract_text_from_pdf(pdf_path)
 
 def generate_response(query_text):
-    if not YOUR_OPENAI_API_KEY:
-        raise ValueError("OpenAI API Key is not set. Please set it in the environment variables.")
-
     # Load and preprocess data
     document_text = load_static_data()
 
