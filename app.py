@@ -35,8 +35,6 @@ def generate_response(openai_api_key, query_text):
     embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
     
     # Create a vectorstore from documents
-    from chromadb.api.client.SharedSystemClient import clear_system_cache
-    clear_system_cache()  # Ensure clean slate for Chroma DB
     db = Chroma.from_documents(texts, embeddings)
     
     # Create retriever interface
