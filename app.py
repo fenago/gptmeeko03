@@ -33,15 +33,22 @@ def generate_response(query_text):
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.split_text(document_text)
 
-    # Initialize Chroma client
-    client = Client(Settings(persist_directory=".chroma_data"))
+    # Initialize Chroma client with explicit tenant settings
+    client = Client(Settings(
+        persist_directory=".chroma_data",
+        anonymized_telemetry=False
+    ))
+
+    # Check or create tenant
+    if "default_tenant" not in client.list_tenants():
+        client.create_tenant("default_tenant")
 
     # Add documents to Chroma database in bulk
     documents = [{"id": str(i), "content": text, "metadata": {}} for i, text in enumerate(texts)]
-    client.add(documents=documents)
+    client.add(documents=documents, tenant="default_tenant")
 
     # Retrieve similar documents
-    retriever = client.query(query_text=query_text, n_results=5)
+    retriever = client.query(query_text=query_text, n_results=5, tenant="default_tenant")
 
     # Create QA chain
     qa = RetrievalQA.from_chain_type(
