@@ -1,8 +1,4 @@
 import streamlit as st
-import sys
-import pysqlite3
-sys.modules['sqlite3'] = pysqlite3  # Ensure pysqlite3 is used
-
 from langchain_openai import OpenAI, OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
@@ -59,7 +55,7 @@ def generate_response(query_text):
 
 # Streamlit page title and description
 st.set_page_config(page_title='GPT Chatbot with PDF Data')
-st.title('\ud83d\udcc4 GPT Chatbot: PDF Data')
+st.title('📄 GPT Chatbot: PDF Data')
 
 # User input for query
 query_text = st.text_input('Enter your question:', placeholder='Ask a specific question about the document.')
