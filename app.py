@@ -32,18 +32,20 @@ def generate_response(query_text):
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.split_text(document_text)
 
+    # Prepare documents for Chroma
+    documents = [{"content": text, "metadata": {}} for text in texts]
+
     # Select embeddings
     embeddings = OpenAIEmbeddings(openai_api_key=YOUR_OPENAI_API_KEY)
 
     # Initialize Chroma vector store with a persistence directory
-    db = Chroma.from_texts(
-        texts,
-        embedding=embeddings,
-        persist_directory=".chroma_data"  # Directory for persistence
-    )
+    db = Chroma(persist_directory=".chroma_data", embedding_function=embeddings)
+
+    # Add documents to the vector store
+    db.add_documents(documents)
 
     # Create retriever interface
-    retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": min(5, len(texts))})  # Adjust number of results
+    retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 5})
 
     # Create QA chain
     qa = RetrievalQA.from_chain_type(
@@ -54,15 +56,15 @@ def generate_response(query_text):
     return qa.run(query_text)
 
 # Streamlit page title and description
-st.set_page_config(page_title='GPT Chatbot with PDF Data')
-st.title('📄 GPT Chatbot: PDF Data')
+st.set_page_config(page_title="GPT Chatbot with PDF Data")
+st.title("📄 GPT Chatbot: PDF Data")
 
 # User input for query
-query_text = st.text_input('Enter your question:', placeholder='Ask a specific question about the document.')
+query_text = st.text_input("Enter your question:", placeholder="Ask a specific question about the document.")
 
 # Generate response when input is provided
 if st.button("Submit") and query_text:
-    with st.spinner('Processing your request...'):
+    with st.spinner("Processing your request..."):
         try:
             response = generate_response(query_text)
             st.success(response)
