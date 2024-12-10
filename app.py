@@ -32,15 +32,12 @@ def generate_response(query_text):
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.split_text(document_text)
 
-    # Prepare documents for Chroma
-    documents = [{"page_content": text} for text in texts]
-
     # Select embeddings
     embeddings = OpenAIEmbeddings(openai_api_key=YOUR_OPENAI_API_KEY)
 
     # Initialize Chroma vector store with a persistence directory
-    db = Chroma.from_documents(
-        documents=documents,
+    db = Chroma.from_texts(
+        texts,
         embedding=embeddings,
         persist_directory=".chroma_data"  # Directory for persistence
     )
@@ -65,9 +62,4 @@ query_text = st.text_input('Enter your question:', placeholder='Ask a specific q
 
 # Generate response when input is provided
 if st.button("Submit") and query_text:
-    with st.spinner('Processing your request...'):
-        try:
-            response = generate_response(query_text)
-            st.success(response)
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
+    with st.spinner('Processing your request
