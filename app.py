@@ -34,38 +34,50 @@ def load_static_data():
 
 def generate_response(query_text):
     chroma_directory = ".chroma_data"
-    # Check if Chroma data already exists
-    if not os.path.exists(chroma_directory):
-        os.makedirs(chroma_directory)
+    # Debug: Check for existing directory
+    print(f"Checking Chroma directory: {chroma_directory}")
+    if os.path.exists(chroma_directory):
+        print("Chroma directory exists, attempting cleanup...")
+        clean_chroma_data()
 
     # Initialize Chroma client
+    print("Initializing Chroma client...")
     client = Client(Settings(
         persist_directory=chroma_directory,
         anonymized_telemetry=False
     ))
 
     # Load and preprocess data
+    print("Loading static data from PDF...")
     document_text = load_static_data()
 
     # Split documents into manageable chunks
+    print("Splitting documents into chunks...")
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.split_text(document_text)
 
     # Check if documents are already in Chroma
-    if len(client.list_collections()) == 0:
-        # Add documents to Chroma database in bulk
+    collections = client.list_collections()
+    print(f"Existing collections: {collections}")
+    if len(collections) == 0:
+        print("No collections found, adding documents...")
         documents = [{"id": str(i), "content": text, "metadata": {}} for i, text in enumerate(texts)]
         client.add(documents=documents)
+    else:
+        print("Documents already exist in the database.")
 
     # Retrieve similar documents
+    print("Querying Chroma for similar documents...")
     retriever = client.query(query_text=query_text, n_results=5)
 
     # Create QA chain
+    print("Creating QA chain...")
     qa = RetrievalQA.from_chain_type(
         llm=OpenAI(openai_api_key=YOUR_OPENAI_API_KEY, temperature=0),
         chain_type="stuff",
         retriever=retriever
     )
+    print("Running QA chain...")
     return qa.run(query_text)
 
 # Streamlit page title and description
