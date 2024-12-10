@@ -11,8 +11,8 @@ from PyPDF2 import PdfReader
 # Replace sqlite3 module with pysqlite3 for Chroma compatibility
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-# Hardcoded OpenAI API Key
-OPENAI_API_KEY = "YOUR_OPENAI_API_KEY"  # Replace with your actual API key
+# Load OpenAI API Key from Streamlit secrets
+OPENAI_API_KEY = st.secrets["YOUR_OPENAI_API_KEY"]
 
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_path):
@@ -27,6 +27,7 @@ def load_static_data():
     pdf_path = "Pellet_mill.pdf"  # Ensure this matches your repository's filename
     return extract_text_from_pdf(pdf_path)
 
+# Generate a response using the OpenAI API
 def generate_response(query_text):
     documents = [load_static_data()]
     
@@ -62,7 +63,7 @@ st.title('📄 GPT Chatbot: PDF Data')
 # User input for query
 query_text = st.text_input('Enter your question:', placeholder='Ask a specific question about the document.')
 
-# Generate response when query is provided
+# Generate response when input is provided
 if st.button("Submit") and query_text:
     with st.spinner('Processing your request...'):
         try:
