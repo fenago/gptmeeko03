@@ -10,9 +10,9 @@ from PyPDF2 import PdfReader
 
 # Replace sqlite3 module with pysqlite3 for Chroma compatibility
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+#streamlit key
 
-# Hardcoded OpenAI API Key
-OPENAI_API_KEY = "your-openai-api-key-here"  # Replace with your actual API key
+os.environ['YOUR_OPENAI_API_KEY'] = st.secrets["YOUR_OPENAI_API_KEY"]
 
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_path):
