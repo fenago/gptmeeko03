@@ -1,7 +1,8 @@
 import streamlit as st
 from langchain_openai import OpenAI, OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from chromadb import Client
+from chromadb.config import Settings
 from langchain.chains import RetrievalQA
 from PyPDF2 import PdfReader
 import os
@@ -32,20 +33,15 @@ def generate_response(query_text):
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.split_text(document_text)
 
-    # Prepare documents for Chroma
-    documents = [{"content": text, "metadata": {}} for text in texts]
+    # Initialize Chroma client
+    client = Client(Settings(persist_directory=".chroma_data"))
 
-    # Select embeddings
-    embeddings = OpenAIEmbeddings(openai_api_key=YOUR_OPENAI_API_KEY)
+    # Add documents to Chroma database
+    for i, text in enumerate(texts):
+        client.insert(id=str(i), content=text, metadata={})
 
-    # Initialize Chroma vector store with a persistence directory
-    db = Chroma(persist_directory=".chroma_data", embedding_function=embeddings)
-
-    # Add documents to the vector store
-    db.add_documents(documents)
-
-    # Create retriever interface
-    retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 5})
+    # Retrieve similar documents
+    retriever = client.search(query=query_text, n_results=5)
 
     # Create QA chain
     qa = RetrievalQA.from_chain_type(
