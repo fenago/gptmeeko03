@@ -16,9 +16,6 @@ sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 api_key = st.secrets["YOUR_OPENAI_API_KEY"]
 YOUR_OPENAI_API_KEY = st.secrets["YOUR_OPENAI_API_KEY"]
 
-# Initialize the OpenAI client with the API key from secrets
-client = OpenAI(api_key=api_key)
-
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_path):
     pdf_reader = PdfReader(pdf_path)
@@ -36,25 +33,26 @@ def generate_response(query_text):
     if not YOUR_OPENAI_API_KEY:
         raise ValueError("OpenAI API Key is not set. Please set it in the environment variables.")
 
-    documents = [load_static_data()]
-    
+    # Load and preprocess data
+    document_text = load_static_data()
+
     # Split documents into manageable chunks
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    texts = text_splitter.create_documents(documents)
-    
+    texts = text_splitter.split_text(document_text)
+
     # Select embeddings
     embeddings = OpenAIEmbeddings(openai_api_key=YOUR_OPENAI_API_KEY)
-    
+
     # Initialize Chroma vector store with a persistence directory
-    db = Chroma.from_documents(
+    db = Chroma.from_texts(
         texts,
         embeddings,
         persist_directory=".chroma_data"  # Directory for persistence
     )
-    
+
     # Create retriever interface
     retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 5})  # Return top 5 most relevant chunks
-    
+
     # Create QA chain
     qa = RetrievalQA.from_chain_type(
         llm=OpenAI(openai_api_key=YOUR_OPENAI_API_KEY, temperature=0),
