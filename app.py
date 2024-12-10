@@ -12,7 +12,7 @@ from PyPDF2 import PdfReader
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # Hardcoded OpenAI API Key
-OPENAI_API_KEY = "openai-api-key"  # Replace with your actual API key
+OPENAI_API_KEY = "YOUR_OPENAI_API_KEY"  # Replace with your actual API key
 
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_path):
