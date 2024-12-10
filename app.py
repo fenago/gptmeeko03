@@ -45,9 +45,9 @@ def generate_response(openai_api_key, query_text):
     # Create retriever interface
     retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 5})  # Return top 5 most relevant chunks
     
-    # Create QA chain with GPT-4-32k
+    # Create QA chain
     qa = RetrievalQA.from_chain_type(
-        llm=OpenAI(openai_api_key=openai_api_key, model="gpt-4-32k", temperature=0),
+        llm=OpenAI(openai_api_key=openai_api_key, temperature=0),
         chain_type="stuff",
         retriever=retriever
     )
@@ -67,7 +67,6 @@ openai_api_key = st.text_input('OpenAI API Key', type='password')
 if st.button("Submit") and query_text and openai_api_key.startswith('sk-'):
     with st.spinner('Processing your request...'):
         try:
-            # Call the function only after API key and query are available
             response = generate_response(openai_api_key, query_text)
             st.success(response)
         except Exception as e:
