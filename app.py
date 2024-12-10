@@ -6,11 +6,13 @@ from langchain.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 import pysqlite3
 import sys
-import os
 from PyPDF2 import PdfReader
 
 # Replace sqlite3 module with pysqlite3 for Chroma compatibility
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+# Hardcoded OpenAI API Key
+OPENAI_API_KEY = "openai-api-key"  # Replace with your actual API key
 
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_path):
@@ -22,10 +24,10 @@ def extract_text_from_pdf(pdf_path):
 
 # Load the static dataset from the PDF
 def load_static_data():
-    pdf_path = "Pellet_mill.pdf"  # Corrected the filename to match your repository
+    pdf_path = "Pellet_mill.pdf"  # Ensure this matches your repository's filename
     return extract_text_from_pdf(pdf_path)
 
-def generate_response(openai_api_key, query_text):
+def generate_response(query_text):
     documents = [load_static_data()]
     
     # Split documents into manageable chunks
@@ -33,7 +35,7 @@ def generate_response(openai_api_key, query_text):
     texts = text_splitter.create_documents(documents)
     
     # Select embeddings
-    embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
+    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
     
     # Initialize Chroma vector store with a persistence directory
     db = Chroma.from_documents(
@@ -47,7 +49,7 @@ def generate_response(openai_api_key, query_text):
     
     # Create QA chain
     qa = RetrievalQA.from_chain_type(
-        llm=OpenAI(openai_api_key=openai_api_key, temperature=0),
+        llm=OpenAI(openai_api_key=OPENAI_API_KEY, temperature=0),
         chain_type="stuff",
         retriever=retriever
     )
@@ -60,14 +62,11 @@ st.title('📄 GPT Chatbot: PDF Data')
 # User input for query
 query_text = st.text_input('Enter your question:', placeholder='Ask a specific question about the document.')
 
-# API Key input
-openai_api_key = st.text_input('OpenAI API Key', type='password')
-
-# Generate response when both inputs are provided
-if st.button("Submit") and query_text and openai_api_key.startswith('sk-'):
+# Generate response when query is provided
+if st.button("Submit") and query_text:
     with st.spinner('Processing your request...'):
         try:
-            response = generate_response(openai_api_key, query_text)
+            response = generate_response(query_text)
             st.success(response)
         except Exception as e:
             st.error(f"An error occurred: {e}")
