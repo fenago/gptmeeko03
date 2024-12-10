@@ -1,7 +1,7 @@
 import streamlit as st
 from langchain_openai import OpenAI
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.chains import QA
+from langchain.chains.question_answering import load_qa_chain
 from PyPDF2 import PdfReader
 import os
 
@@ -38,9 +38,9 @@ def generate_response(query_text):
 
     # Create QA chain
     print("Creating QA chain...")
-    qa = QA(llm=OpenAI(openai_api_key=YOUR_OPENAI_API_KEY, temperature=0))
+    qa_chain = load_qa_chain(llm=OpenAI(openai_api_key=YOUR_OPENAI_API_KEY, temperature=0), chain_type="stuff")
     print("Running QA chain...")
-    return qa.run(input_document=combined_text, query=query_text)
+    return qa_chain.run(input_documents=[{"content": combined_text}], query=query_text)
 
 # Streamlit page title and description
 st.set_page_config(page_title="GPT Chatbot with PDF Data")
