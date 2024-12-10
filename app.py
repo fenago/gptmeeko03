@@ -22,7 +22,7 @@ def extract_text_from_pdf(pdf_path):
 
 # Load the static dataset from the PDF
 def load_static_data():
-    pdf_path = "data.pdf"  # Name of your PDF file in the repository
+    pdf_path = "Pellet_mill.pdf"  # Corrected the filename to match your repository
     return extract_text_from_pdf(pdf_path)
 
 def generate_response(openai_api_key, query_text):
