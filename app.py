@@ -34,7 +34,7 @@ def generate_response(query_text):
     texts = text_splitter.split_text(document_text)
 
     # Prepare documents for QA chain
-    input_documents = [{"page_content": text} for text in texts]
+    input_documents = [{"content": text} for text in texts]
 
     # Create QA chain
     print("Creating QA chain...")
