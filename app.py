@@ -7,14 +7,23 @@ from langchain.chains import RetrievalQA
 import pysqlite3
 import sys
 import os
+from PyPDF2 import PdfReader
 
 # Replace sqlite3 module with pysqlite3 for Chroma compatibility
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-# Load the static dataset from a text file in the repository
+# Function to extract text from the PDF
+def extract_text_from_pdf(pdf_path):
+    pdf_reader = PdfReader(pdf_path)
+    text = ""
+    for page in pdf_reader.pages:
+        text += page.extract_text()
+    return text
+
+# Load the static dataset from the PDF
 def load_static_data():
-    with open("data.txt", "r", encoding="utf-8") as file:
-        return file.read()
+    pdf_path = "data.pdf"  # Name of your PDF file in the repository
+    return extract_text_from_pdf(pdf_path)
 
 def generate_response(openai_api_key, query_text):
     documents = [load_static_data()]
@@ -42,8 +51,8 @@ def generate_response(openai_api_key, query_text):
     return qa.run(query_text)
 
 # Streamlit page title and description
-st.set_page_config(page_title='GPT Chatbot with Static Data')
-st.title('📄 GPT Chatbot: Static Data')
+st.set_page_config(page_title='GPT Chatbot with PDF Data')
+st.title('📄 GPT Chatbot: PDF Data')
 
 # User input for query
 query_text = st.text_input('Enter your question:', placeholder='Ask a specific question about the document.')
