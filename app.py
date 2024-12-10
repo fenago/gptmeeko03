@@ -25,6 +25,7 @@ def extract_text_from_pdf(pdf_path):
 def clean_chroma_data():
     chroma_directory = ".chroma_data"
     if os.path.exists(chroma_directory):
+        print("Cleaning up Chroma directory...")
         shutil.rmtree(chroma_directory)
 
 # Load the static dataset from the PDF
@@ -32,20 +33,37 @@ def load_static_data():
     pdf_path = "Pellet_mill.pdf"  # Ensure this matches your repository's filename
     return extract_text_from_pdf(pdf_path)
 
+def initialize_chroma(chroma_directory):
+    # Ensure no conflicting Chroma instances are running
+    try:
+        print("Attempting to initialize Chroma client...")
+        client = Client(Settings(
+            persist_directory=chroma_directory,
+            anonymized_telemetry=False
+        ))
+        return client
+    except Exception as e:
+        print(f"Chroma initialization error: {e}")
+        clean_chroma_data()
+        print("Retrying Chroma initialization...")
+        client = Client(Settings(
+            persist_directory=chroma_directory,
+            anonymized_telemetry=False
+        ))
+        return client
+
 def generate_response(query_text):
     chroma_directory = ".chroma_data"
+
     # Debug: Check for existing directory
     print(f"Checking Chroma directory: {chroma_directory}")
     if os.path.exists(chroma_directory):
-        print("Chroma directory exists, attempting cleanup...")
-        clean_chroma_data()
+        print("Chroma directory exists.")
+    else:
+        print("Chroma directory does not exist, creating...")
 
     # Initialize Chroma client
-    print("Initializing Chroma client...")
-    client = Client(Settings(
-        persist_directory=chroma_directory,
-        anonymized_telemetry=False
-    ))
+    client = initialize_chroma(chroma_directory)
 
     # Load and preprocess data
     print("Loading static data from PDF...")
