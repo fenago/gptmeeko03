@@ -8,10 +8,6 @@ import pysqlite3
 import sys
 import os
 from PyPDF2 import PdfReader
-from langchain.llms import OpenAI
-
-# Initialize OpenAI with GPT-4-32k
-llm = OpenAI(openai_api_key=openai_api_key, model="gpt-4-32k", temperature=0)
 
 # Replace sqlite3 module with pysqlite3 for Chroma compatibility
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
@@ -71,6 +67,7 @@ openai_api_key = st.text_input('OpenAI API Key', type='password')
 if st.button("Submit") and query_text and openai_api_key.startswith('sk-'):
     with st.spinner('Processing your request...'):
         try:
+            # Call the function only after API key and query are available
             response = generate_response(openai_api_key, query_text)
             st.success(response)
         except Exception as e:
