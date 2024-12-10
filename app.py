@@ -34,8 +34,12 @@ def generate_response(openai_api_key, query_text):
     # Select embeddings
     embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
     
-    # Create a vectorstore from documents
-    db = Chroma.from_documents(texts, embeddings)
+    # Initialize Chroma vector store with an in-memory setup
+    db = Chroma.from_documents(
+        texts,
+        embeddings,
+        persist_directory=".chroma_data"  # Directory for persistence
+    )
     
     # Create retriever interface
     retriever = db.as_retriever()
