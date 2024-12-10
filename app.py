@@ -4,8 +4,6 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.chains import RetrievalQA
-from langchain.chains.question_answering import load_qa_chain
-from langchain.prompts import PromptTemplate
 import pysqlite3
 import sys
 import os
@@ -29,6 +27,7 @@ def load_static_data():
 
 def generate_response(openai_api_key, query_text):
     documents = [load_static_data()]
+    
     # Split documents into manageable chunks
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.create_documents(documents)
@@ -36,7 +35,7 @@ def generate_response(openai_api_key, query_text):
     # Select embeddings
     embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
     
-    # Initialize Chroma vector store with an in-memory setup
+    # Initialize Chroma vector store with a persistence directory
     db = Chroma.from_documents(
         texts,
         embeddings,
@@ -44,26 +43,15 @@ def generate_response(openai_api_key, query_text):
     )
     
     # Create retriever interface
-    retriever = db.as_retriever(search_kwargs={"k": 5})  # Retrieve top 5 most relevant chunks
+    retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 5})  # Return top 5 most relevant chunks
     
-    # Load the retriever with a limit to avoid token overflow
-    docs = retriever.get_relevant_documents(query_text)
-
-    # Create QA chain with a custom prompt to reduce verbosity
-    prompt_template = """
-    You are a helpful assistant. Use the following extracted parts of a document to answer the question.
-    If you don't know the answer, just say "I don't know." Do not make up an answer.
-
-    {context}
-
-    Question: {question}
-    Answer:
-    """
-    PROMPT = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
-    qa_chain = load_qa_chain(OpenAI(openai_api_key=openai_api_key), chain_type="stuff", prompt=PROMPT)
-    
-    # Run the QA chain and return the result
-    return qa_chain.run(input_documents=docs, question=query_text)
+    # Create QA chain
+    qa = RetrievalQA.from_chain_type(
+        llm=OpenAI(openai_api_key=openai_api_key, temperature=0),
+        chain_type="stuff",
+        retriever=retriever
+    )
+    return qa.run(query_text)
 
 # Streamlit page title and description
 st.set_page_config(page_title='GPT Chatbot with PDF Data')
@@ -83,3 +71,4 @@ if st.button("Submit") and query_text and openai_api_key.startswith('sk-'):
             st.success(response)
         except Exception as e:
             st.error(f"An error occurred: {e}")
+
