@@ -1,10 +1,9 @@
 import streamlit as st
-from langchain_openai import OpenAI, OpenAIEmbeddings
+from langchain_openai import OpenAI
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.chains import RetrievalQA
+from langchain.chains import QA
 from PyPDF2 import PdfReader
 import os
-import shutil
 
 # Access the OpenAI API key from environment variables or Streamlit secrets
 YOUR_OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", st.secrets.get("YOUR_OPENAI_API_KEY", ""))
@@ -19,24 +18,12 @@ def extract_text_from_pdf(pdf_path):
         text += page.extract_text()
     return text
 
-# Function to completely clean up any Chroma-related data
-def clean_all_chroma_data():
-    chroma_directory = ".chroma_data"
-    if os.path.exists(chroma_directory):
-        print("Removing Chroma directory...")
-        shutil.rmtree(chroma_directory)
-    else:
-        print("No Chroma directory found to clean.")
-
 # Load the static dataset from the PDF
 def load_static_data():
     pdf_path = "Pellet_mill.pdf"  # Ensure this matches your repository's filename
     return extract_text_from_pdf(pdf_path)
 
 def generate_response(query_text):
-    # Clean up Chroma data to avoid any conflicts
-    clean_all_chroma_data()
-
     # Load and preprocess data
     print("Loading static data from PDF...")
     document_text = load_static_data()
@@ -46,15 +33,14 @@ def generate_response(query_text):
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.split_text(document_text)
 
-    # Create QA chain without Chroma
+    # Combine all chunks back into a single context for simplicity
+    combined_text = "\n".join(texts)
+
+    # Create QA chain
     print("Creating QA chain...")
-    qa = RetrievalQA.from_chain_type(
-        llm=OpenAI(openai_api_key=YOUR_OPENAI_API_KEY, temperature=0),
-        chain_type="stuff",
-        retriever=None  # No Chroma retriever
-    )
+    qa = QA(llm=OpenAI(openai_api_key=YOUR_OPENAI_API_KEY, temperature=0))
     print("Running QA chain...")
-    return qa.run(query_text)
+    return qa.run(input_document=combined_text, query=query_text)
 
 # Streamlit page title and description
 st.set_page_config(page_title="GPT Chatbot with PDF Data")
