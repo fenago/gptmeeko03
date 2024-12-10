@@ -36,12 +36,12 @@ def generate_response(query_text):
     # Initialize Chroma client
     client = Client(Settings(persist_directory=".chroma_data"))
 
-    # Add documents to Chroma database
-    for i, text in enumerate(texts):
-        client.insert(id=str(i), content=text, metadata={})
+    # Add documents to Chroma database in bulk
+    documents = [{"id": str(i), "content": text, "metadata": {}} for i, text in enumerate(texts)]
+    client.add(documents=documents)
 
     # Retrieve similar documents
-    retriever = client.search(query=query_text, n_results=5)
+    retriever = client.query(query_text=query_text, n_results=5)
 
     # Create QA chain
     qa = RetrievalQA.from_chain_type(
