@@ -6,3 +6,4 @@ pysqlite3-binary
 tiktoken
 langchain_community
 PyPDF2
+together
