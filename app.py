@@ -40,7 +40,7 @@ def generate_response(query_text):
     print("Creating QA chain...")
     qa_chain = load_qa_chain(llm=OpenAI(openai_api_key=YOUR_OPENAI_API_KEY, temperature=0), chain_type="stuff")
     print("Running QA chain...")
-    return qa_chain.run(input_documents=[{"content": combined_text}], query=query_text)
+    return qa_chain.run({"input_documents": [{"content": combined_text}], "question": query_text})
 
 # Streamlit page title and description
 st.set_page_config(page_title="GPT Chatbot with PDF Data")
